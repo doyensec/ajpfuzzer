@@ -1,21 +1,23 @@
 # AJPFuzzer - A command-line fuzzer for AJPv1.3
 
-**AJPFuzzer** is a rudimental fuzzer for the [Apache JServ Protocol](https://tomcat.apache.org/connectors-doc/ajp/ajpv13a.html) (ajp13). Built on top of [libajp13](https://github.com/doyensec/libajp13), the tool allows to create and send AJP messages using an easy-to-use command line interface. 
+**AJPFuzzer** is a rudimental fuzzer for the [Apache JServ Protocol](https://tomcat.apache.org/connectors-doc/ajp/ajpv13a.html) (ajp13). 
 
-AJPFuzzer can craft properly formatted AJP13 messages (all message types) as well as mutations (e.g. bit flipping, messages with type mismatch, etc.), which facilitates security testing targeting AJP-based services like web servers AJP modules, J2EE containers, and many others.
+Built on top of [libajp13](https://github.com/doyensec/libajp13), the tool allows you to create and send AJP messages using an easy-to-use command line interface. AJPFuzzer can craft properly formatted AJP13 messages (all message types) as well as mutations (e.g. bit flipping, messages with type mismatch, etc.), which facilitates security testing efforts targeting AJP-based services like web servers AJP modules, J2EE containers, and many others.
 ### How To Use it
 
-1. Download the latest AJPFuzzer jar from the [release page](https://github.com/doyensec/ajpfuzzer/release)
+1. Download the latest AJPFuzzer jar from the [releases page](https://github.com/doyensec/ajpfuzzer/releases)
 2. Execute the downloaded jar using:
 ```
 $ java -jar ajpfuzzer_v0.6.jar
 ```
 The tool will prompt a shell. By typing *?list*, it is possible to list all commands available for the specific context.
+
 3. At this point, you can connect to the target using:
 ```
 AJPFuzzer> connect 127.0.0.1 8009
 ``` 
-4. Then, you can send a *CPing* message (type 10) by simply typing '10' (note that no arguments are needed for this message)
+
+4. Then, you can send a *CPing* message (type 10) by simply typing '10' (no arguments are needed for this message)
 ```
 AJPFuzzer/127.0.0.1:8009> 10
 ```
@@ -24,12 +26,12 @@ The following screenshot illustrates the entire execution:
 
 ![CPing message using AJPFuzzer](http://i.imgur.com/22lHxX3.png)
 
-Obviously, it is possible to send more complex messages by specifing the appropriate testcase and arguments. See *?list <command>* for all details.
+Obviously, it is possible to send more complex messages by specifying the appropriate testcase and arguments. Please refer to *?list <command>* for all details on a specific command.
 
-For example, we can send a fully customized *ForwardRequest* type message:
+For example, we can send a fully customized *ForwardRequest* type message using:
 	
 ```
-AJPFuzzer/127.0.0.1:8009> forwardrequest 2 "HTTP/1.1" "/api/" 127.0.0.1 localhost porto 8009 false "Cookie:AAAA=BBBB" ""
+> forwardrequest 2 "HTTP/1.1" "/api/" 127.0.0.1 localhost porto 8009 false "Cookie:AAAA=BBBB" ""
 ```
 
 ![ForwardRequest message using AJPFuzzer](http://i.imgur.com/5j5JYre.png)
@@ -63,4 +65,4 @@ Id | Name | Description
 21 | hugepacketsize | Create two AJP13 requests with size > 8192 bytes
 22 | dirtraversal | Create an AJP13 ForwardRequest (GET) with multiple directory traversal payloads
 
-New test cases can be added by extending the [AJPTestCases.java](https://github.com/doyensec/ajpfuzzer/blob/master/src/com/doyensec/ajpfuzzer/AJPTestCases.java) class. Using the *@Command* annotation, the tool will recognize the additional message and make it available from the command-line interface.  
+New test cases can be added by extending the [AJPTestCases.java](https://github.com/doyensec/ajpfuzzer/blob/master/src/com/doyensec/ajpfuzzer/AJPTestCases.java) class. Using the *@Command* annotation, the tool will recognize the additional command and make it available from the CLI.  
