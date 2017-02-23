@@ -8,26 +8,19 @@ Built on top of [libajp13](https://github.com/doyensec/libajp13), the tool allow
 1. Download the latest AJPFuzzer jar from the [releases page](https://github.com/doyensec/ajpfuzzer/releases)
 2. Execute the downloaded jar using:
 
-        ```
         $ java -jar ajpfuzzer_v0.6.jar
-        ```
-        The tool will prompt a shell. By typing *?list*, it is possible to list all commands available for the specific context.
 
-3. At this point, you can connect to the target using:
+3. The tool will prompt a shell. By typing *?list*, it is possible to list all commands available for the specific context. At this point, you can connect to the target using:
 
-        ```
         AJPFuzzer> connect 127.0.0.1 8009
-        ``` 
 
 4. Then, you can send a *CPing* message (type 10) by simply typing '10' (no arguments are needed for this message)
 
-        ```
         AJPFuzzer/127.0.0.1:8009> 10
-        ```
 
-        The following screenshot illustrates the entire execution:
+The following screenshot illustrates the entire execution:
 
-        ![CPing message using AJPFuzzer](http://i.imgur.com/22lHxX3.png)
+![CPing message using AJPFuzzer](http://i.imgur.com/22lHxX3.png)
 
 Obviously, it is possible to send more complex messages by specifying the appropriate test case and arguments. Please refer to *?list <command>* for all details on a specific command.
 
