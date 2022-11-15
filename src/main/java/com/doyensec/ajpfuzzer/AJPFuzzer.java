@@ -28,7 +28,7 @@ import com.doyensec.ajp13.CPongMessage;
 
 public class AJPFuzzer implements ShellDependent, ShellManageable {
 
-    private final String version = "0.6";
+    private final String version = "0.7";
     private Shell shell;
     private String host;
     private int port = 0;
@@ -103,7 +103,7 @@ public class AJPFuzzer implements ShellDependent, ShellManageable {
             System.out.println("[!] Disconnected\n");
         }
     }
-    
+
     @Command(description = "Disconnect and quit AJPFuzzer", name = "quit", abbrev = "quit")
     public void quit() {
         this.cliLeaveLoop(); //Exit all
