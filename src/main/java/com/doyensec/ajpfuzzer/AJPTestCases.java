@@ -1,7 +1,7 @@
 /*
  * AJPFuzzer - AJPTestCases.java
  *
- * Copyright (c) 2017 Luca Carettoni - Doyensec LLC. 
+ * Copyright (c) 2017 Luca Carettoni - Doyensec LLC.
  */
 package com.doyensec.ajpfuzzer;
 
@@ -9,12 +9,16 @@ import asg.cliche.Command;
 import asg.cliche.Param;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.io.UnsupportedEncodingException;
+import java.io.File;
+import java.nio.file.Paths;
+import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+
+import jdk.jshell.execution.Util;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.doyensec.ajp13.AjpMessage;
@@ -56,9 +60,11 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 1 
-     * Test Case name: body 
+     * Test Case id: 1
+     * Test Case name: body
      * Description: Send a body message from the web server to the J2EE container
+     * Usage example: AJPFuzzer/192.168.80.131:8009> body ""
+     *                AJPFuzzer/192.168.80.131:8009> body "32456457"
      */
     @Command(description = "Send a Body (no type) AJP13 packet", name = "body", abbrev = "1")
     public void bodyMessage(@Param(name = "data", description = "Body content (e.g. 41424344)") String data) throws UnsupportedEncodingException, IOException {
@@ -73,23 +79,24 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 2 
-     * Test Case name: forwardrequest 
+     * Test Case id: 2
+     * Test Case name: forwardrequest
      * Description: Begin the request processing cycle from the web server to the J2EE container
-     * 
+     *
      * Headers and attributes passed as <name>:<value>,<name>:<value>,...
+     * Usage example: AJPFuzzer/192.168.80.131:8009> forwardrequest 2 "HTTP/1.1" "/path/" 127.0.0.1 localhost porto 8009 false "Cookie:name=value" "attr=value"
      */
     @Command(description = "Send a ForwardRequest (type 2) AJP13 packet", name = "forwardrequest", abbrev = "2")
     public void forwardRequestMessage(@Param(name = "method", description = "HTTP verb (e.g. GET=2)") int method,
-            @Param(name = "protocol", description = "HTTP protocol (e.g. HTTP/1.1)") String protocol,
-            @Param(name = "requestUri", description = "Request URI (e.g. /api/)") String requestUri,
-            @Param(name = "remoteAddr", description = "Client IP address") String remoteAddr,
-            @Param(name = "remoteHost", description = "Client FQDN") String remoteHost,
-            @Param(name = "serverName", description = "Server FQDN") String serverName,
-            @Param(name = "serverPort", description = "Server TCP port") int serverPort,
-            @Param(name = "isSsl", description = "Is SSL? Boolean") boolean isSsl,
-            @Param(name = "headers", description = "HTTP headers as <name>:<value>,<name>:<value>,...") String headers,
-            @Param(name = "attributes", description = "HTTP attributes as <name>:<value>,<name>:<value>,...") String attributes) throws UnsupportedEncodingException, IOException {
+                                      @Param(name = "protocol", description = "HTTP protocol (e.g. HTTP/1.1)") String protocol,
+                                      @Param(name = "requestUri", description = "Request URI (e.g. /api/)") String requestUri,
+                                      @Param(name = "remoteAddr", description = "Client IP address") String remoteAddr,
+                                      @Param(name = "remoteHost", description = "Client FQDN") String remoteHost,
+                                      @Param(name = "serverName", description = "Server FQDN") String serverName,
+                                      @Param(name = "serverPort", description = "Server TCP port") int serverPort,
+                                      @Param(name = "isSsl", description = "Is SSL? Boolean") boolean isSsl,
+                                      @Param(name = "headers", description = "HTTP headers as <name>:<value>,<name>:<value>,...") String headers,
+                                      @Param(name = "attributes", description = "HTTP attributes as <name>:<value>,<name>:<value>,...") String attributes) throws UnsupportedEncodingException, IOException {
         List<Pair<String, String>> headersList = null;
         if (headers.contains(":")) {
             //Convert headers string to java.util.List<Pair<java.lang.String,java.lang.String>>
@@ -111,15 +118,26 @@ public class AJPTestCases {
                 attributesList.add(Pair.make(nameValue[0], nameValue[1]));
             }
         }
-        AjpMessage msg = new ForwardRequestMessage(method, protocol, requestUri,
-                remoteAddr, remoteHost, serverName, serverPort, isSsl, headersList, attributesList);
+        AjpMessage msg = new ForwardRequestMessage(
+                method,
+                protocol,
+                requestUri,
+                remoteAddr,
+                remoteHost,
+                serverName,
+                serverPort,
+                isSsl,
+                headersList,
+                attributesList
+        );
         Utils.sendAndReceiveVerbose(ajpsocket, msg.getBytes(), "(2) forwardrequest");
     }
 
     /*
-     * Test Case id: 3 
-     * Test Case name: sendbodychunk 
+     * Test Case id: 3
+     * Test Case name: sendbodychunk
      * Description: Send a chunk of the body from the J2EE container to the web server
+     * Usage example: AJPFuzzer/192.168.80.131:8009> sendbodychunk "1234"
      */
     @Command(description = "Send a SendBodyChunk (type 3) AJP13 packet", name = "sendbodychunk", abbrev = "3")
     public void sendBodyChunkMessage(@Param(name = "data", description = "Body chunk (e.g. 41424344)") String data) throws UnsupportedEncodingException, IOException {
@@ -135,13 +153,14 @@ public class AJPTestCases {
 
     /*
      * Test Case id: 4
-     * Test Case name: sendheaders 
+     * Test Case name: sendheaders
      * Description: Send the response headers from the J2EE container to the web server
+     * Usage example: AJPFuzzer/192.168.80.131:8009> sendheaders 200 "OK" "header1:value,header2:value"
      */
     @Command(description = "Send a SendHeaders (type 4) AJP13 packet", name = "sendheaders", abbrev = "4")
     public void sendHeadersMessage(@Param(name = "statuscode", description = "HTTP Status Code (e.g. 200)") int statusCode,
-            @Param(name = "statusmessage", description = "HTTP Status Message (e.g. OK)") String statusMessage,
-            @Param(name = "headers", description = "HTTP headers as <name>:<value>,<name>:<value>,...") String headers) throws UnsupportedEncodingException, IOException {
+                                   @Param(name = "statusmessage", description = "HTTP Status Message (e.g. OK)") String statusMessage,
+                                   @Param(name = "headers", description = "HTTP headers as <name>:<value>,<name>:<value>,...") String headers) throws UnsupportedEncodingException, IOException {
         List<Pair<String, String>> headersList = null;
         if (headers.contains(":")) {
             //Convert headers string to java.util.List<Pair<java.lang.String,java.lang.String>>
@@ -157,9 +176,10 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 5 
-     * Test Case name: endresponse 
+     * Test Case id: 5
+     * Test Case name: endresponse
      * Description: Mark the end of the response, from the J2EE container to the web server
+     * Usage example: AJPFuzzer/192.168.80.131:8009> endresponse true
      */
     @Command(description = "Send a EndResponse (type 5) AJP13 packet", name = "endresponse", abbrev = "5")
     public void endResponseMessage(@Param(name = "reuse", description = "Reuse the same TCP session? Boolean") boolean reuse) throws UnsupportedEncodingException, IOException {
@@ -168,9 +188,10 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 6 
-     * Test Case name: getbodychunk 
+     * Test Case id: 6
+     * Test Case name: getbodychunk
      * Description: Get further data from the requestor. Message from the J2EE container to the web server
+     * Usage example: AJPFuzzer/192.168.80.131:8009> getbodychunk 12
      */
     @Command(description = "Send a GetBodyChunk (type 6) AJP13 packet", name = "getbodychunk", abbrev = "6")
     public void getBodyChunkMessage(@Param(name = "length", description = "The expected body chunk message size") int length) throws UnsupportedEncodingException, IOException {
@@ -179,9 +200,10 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 7 
-     * Test Case name: shutdown 
+     * Test Case id: 7
+     * Test Case name: shutdown
      * Description: Send a standard shutdown AJP13 packet
+     * Usage example: AJPFuzzer/192.168.80.131:8009> shutdown
      */
     @Command(description = "Send a shutdown (type 7) AJP13 packet", name = "shutdown", abbrev = "7")
     public void shutdownMessage() throws UnsupportedEncodingException, IOException {
@@ -190,9 +212,10 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 8 
-     * Test Case name: ping 
+     * Test Case id: 8
+     * Test Case name: ping
      * Description: Send a ping (not CPing!!!) AJP13 packet
+     * Usage example: AJPFuzzer/192.168.80.131:8009> ping
      */
     @Command(description = "Send a ping (type 8) AJP13 packet", name = "ping", abbrev = "8")
     public void pingMessage() throws UnsupportedEncodingException, IOException {
@@ -201,9 +224,10 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 9 
-     * Test Case name: cpong 
+     * Test Case id: 9
+     * Test Case name: cpong
      * Description: Send a CPong AJP13 packet
+     * Usage example: AJPFuzzer/192.168.80.131:8009> cpong
      */
     @Command(description = "Send a CPong (type 9) AJP13 packet", name = "cpong", abbrev = "9")
     public void cPongMessage() throws UnsupportedEncodingException, IOException {
@@ -212,9 +236,10 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 10 
-     * Test Case name: cping 
+     * Test Case id: 10
+     * Test Case name: cping
      * Description: Send a CPing AJP13 packet
+     * Usage example: AJPFuzzer/192.168.80.131:8009> cping
      */
     @Command(description = "Send a CPing (type 10) AJP13 packet", name = "cping", abbrev = "10")
     public void cPingMessage() throws UnsupportedEncodingException, IOException {
@@ -223,9 +248,10 @@ public class AJPTestCases {
     }
 
     /*
-     * Test Case id: 11 
-     * Test Case name: forwardreqalltypes 
+     * Test Case id: 11
+     * Test Case name: forwardreqalltypes
      * Description: Send a ForwardRequest AJP13 packet, with all possible packet types
+     * Usage example: AJPFuzzer/192.168.80.131:8009> forwardreqalltypes "http://192.168.80.131:8009"
      */
     @Command(description = "Send a ForwardRequest AJP13 packet, with tampered packet type (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1337)", name = "forwardreqalltypes", abbrev = "11")
     public void forwardRequestWithAllTypes(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -252,6 +278,7 @@ public class AJPTestCases {
      * Test Case id: 12
      * Test Case name: verbtampering
      * Description: Send multiple requests via AJP13 and do HTTP Verb Tampering, to detect potential authentication bypass flaws
+     * Usage example: AJPFuzzer/192.168.80.131:8009> verbtampering "http://192.168.80.131:8009"
      */
     @Command(description = "Send multiple ForwardRequest (type 2) AJP13 packets using HTTP Verb Tampering", name = "verbtampering", abbrev = "12")
     public void bypassAuthMessage(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -267,8 +294,9 @@ public class AJPTestCases {
 
     /*
      * Test Case id: 13
-     * Test Case name: jettyleak 
+     * Test Case name: jettyleak
      * Description: Send a JettyLeak style AJP13 packet
+     * Usage example: AJPFuzzer/192.168.80.131:8009> jettyleak "http://192.168.80.131:8009"
      */
     @Command(description = "Send a ForwardRequest (type 2) AJP13 packet, with JettyLeak header", name = "jettyleak", abbrev = "13")
     public void jettyLeakMessage(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -283,6 +311,7 @@ public class AJPTestCases {
      * Test Case id: 14
      * Test Case name: hugelengthsmallbody
      * Description: Send ForwardRequest+Body messages, with a big Content-Length and small Body
+     * Usage example: AJPFuzzer/192.168.80.131:8009> hugelengthsmallbody "http://192.168.80.131:8009"
      */
     @Command(description = "Send a POST ForwardRequest (type 2) with big Content-Length, followed by a small Body AJP13 packet", name = "hugelengthsmallbody", abbrev = "14")
     public void bodyHugeMessage(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -294,8 +323,9 @@ public class AJPTestCases {
 
     /*
      * Test Case id: 15
-     * Test Case name: hugeheader 
+     * Test Case name: hugeheader
      * Description: Send two AJP13 ForwardRequest packets with header length greater than 0x9999 (e.g. A010)
+     * Usage example: AJPFuzzer/192.168.80.131:8009> hugeheader "http://192.168.80.131:8009"
      */
     @Command(description = "Send two GET ForwardRequest (type 2) packets with header larger than 0x9999 (0xA010)", name = "hugeheader", abbrev = "15")
     public void hugeHeaderMessage(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -313,6 +343,7 @@ public class AJPTestCases {
      * Test Case id: 16
      * Test Case name: fuzzbit
      * Description: Create a complex AJP13 ForwardRequest and start bit flipping
+     * Usage example: AJPFuzzer/192.168.80.131:8009> fuzzbit "http://192.168.80.131:8009"
      */
     @Command(description = "Create a complex GET ForwardRequest (type 2) and start bit flipping (infite loop)", name = "fuzzbit", abbrev = "16")
     public void fuzzBitMessage(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -329,7 +360,17 @@ public class AJPTestCases {
         attributes.add(Pair.make("context", "aaaa"));
         attributes.add(Pair.make("auth_type", "anonymous"));
         URL ulrv = new URL(url);
-        AjpMessage msg = new ForwardRequestMessage(2, "HTTP/1.1", ulrv.getPath(), "127.0.0.1", "localhost", ulrv.getHost(), ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()), ulrv.getProtocol().equalsIgnoreCase("https"), headers, attributes);
+        AjpMessage msg = new ForwardRequestMessage(
+                2,
+                "HTTP/1.1",
+                ulrv.getPath(),
+                "127.0.0.1",
+                "localhost",
+                ulrv.getHost(), ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()),
+                ulrv.getProtocol().equalsIgnoreCase("https"),
+                headers,
+                attributes
+        );
         byte[] msgGene = msg.getBytes();
         //First, send msg as it is
         Utils.sendAndReceiveVerbose(ajpsocket, msgGene, "(16) fuzzbit - original");
@@ -341,8 +382,9 @@ public class AJPTestCases {
 
     /*
      * Test Case id: 17
-     * Test Case name: fuzzslice 
+     * Test Case name: fuzzslice
      * Description: Create an AJP13 ForwardRequest, SendHeaders, ShutDown, 0xFF, 0x00. Slice and send.
+     * Usage example: AJPFuzzer/192.168.80.131:8009> fuzzslice "http://192.168.80.131:8009/path"
      */
     @Command(description = "Create a complex POST ForwardRequest (type 2), SendHeaders, ShutDown, 0xFF, 0x00. Slice and send. (Infite Loop)", name = "fuzzslice", abbrev = "17")
     public void fuzzSliceMessage(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -396,8 +438,9 @@ public class AJPTestCases {
 
     /*
      * Test Case id: 18
-     * Test Case name: servletpath 
+     * Test Case name: servletpath
      * Description: Create an AJP13 ForwardRequest with arbitrary 'servlet_path' attribute
+     * Usage example: AJPFuzzer/192.168.80.131:8009> servletpath "http://192.168.80.131:8009/path" "customServlet"
      */
     @Command(description = "Create an AJP13 ForwardRequest with arbitrary 'servlet_path' attribute", name = "servletpath", abbrev = "18")
     public void servletPathMessage(@Param(name = "url", description = "Forward Request URL") String url, @Param(name = "servletpath", description = "servlet_path attribute") String servletpath) throws UnsupportedEncodingException, IOException {
@@ -410,8 +453,9 @@ public class AJPTestCases {
 
     /*
      * Test Case id: 19
-     * Test Case name: bypassauthnull 
+     * Test Case name: bypassauthnull
      * Description: Create two AJP13 ForwardRequest with auth_type set to 'null'
+     * Usage example: AJPFuzzer/192.168.80.131:8009> bypassauthnull "http://192.168.80.131:8009/"
      */
     @Command(description = "Create two AJP13 ForwardRequest with auth_type set to 'null'", name = "bypassauthnull", abbrev = "19")
     public void authNullMessage(@Param(name = "url", description = "Forward Request URL") String url) throws UnsupportedEncodingException, IOException {
@@ -427,7 +471,14 @@ public class AJPTestCases {
         Utils.sendAndReceiveVerbose(ajpsocket, msg.getBytes(), "(19) bypassauthnull - string 'null'");
         attributes = new LinkedList<>();
         attributes.add(Pair.make("auth_type", ""));
-        msg = new ForwardRequestMessage(2, "HTTP/1.1", ulrv.getPath(), "127.0.0.1", "localhost", ulrv.getHost(), ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()), ulrv.getProtocol().equalsIgnoreCase("https"), headers, attributes);
+        msg = new ForwardRequestMessage(2,
+                "HTTP/1.1", ulrv.getPath(),
+                "127.0.0.1",
+                "localhost",
+                ulrv.getHost(), ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()),
+                ulrv.getProtocol().equalsIgnoreCase("https"),
+                headers,
+                attributes);
         Utils.sendAndReceiveVerbose(ajpsocket, msg.getBytes(), "(19) bypassauthnull - empty string");
     }
 
@@ -435,13 +486,22 @@ public class AJPTestCases {
      * Test Case id: 20
      * Test Case name: envars
      * Description: Create an AJP13 ForwardRequest with req_attribute_code (10) in order to set arbitrary environmental variables
+     * Usage example: AJPFuzzer/192.168.80.131:8009> envars "http://192.168.80.131:8009/aa" "test" "asdf"
      */
     @Command(description = "Create an AJP13 ForwardRequest with req_attribute_code (10) in order to set arbitrary environmental variables", name = "envars", abbrev = "20")
     public void enVarsMessage(@Param(name = "url", description = "Forward Request URL") String url, @Param(name = "enname", description = "environmental variable name") String enname, @Param(name = "envalue", description = "environmental variable value") String envalue) throws UnsupportedEncodingException, IOException {
         List<Pair<String, String>> attributes = new LinkedList<>();
         attributes.add(Pair.make(enname, envalue));
         URL ulrv = new URL(url);
-        AjpMessage msg = new ForwardRequestMessage(2, "HTTP/1.1", ulrv.getPath(), "127.0.0.1", "localhost", ulrv.getHost(), ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()), ulrv.getProtocol().equalsIgnoreCase("https"), null, attributes);
+        AjpMessage msg = new ForwardRequestMessage(2,
+                "HTTP/1.1",
+                ulrv.getPath(),
+                "127.0.0.1",
+                "localhost",
+                ulrv.getHost(),
+                ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()),
+                ulrv.getProtocol().equalsIgnoreCase("https"),
+                null, attributes);
         Utils.sendAndReceiveVerbose(ajpsocket, msg.getBytes(), "(20) envars - " + enname + ":" + envalue);
     }
 
@@ -449,6 +509,7 @@ public class AJPTestCases {
      * Test Case id: 21
      * Test Case name: hugepacketsize
      * Description: Create two AJP13 requests with size > 8192 bytes
+     * Usage example: AJPFuzzer/192.168.80.131:8009> hugepacketsize
      */
     @Command(description = "Send two CPing (type 10) AJP13 packets with wrong (> 8192 bytes) size", name = "hugepacketsize", abbrev = "21")
     public void cPingHugeMessage() throws UnsupportedEncodingException, IOException {
@@ -464,30 +525,73 @@ public class AJPTestCases {
 
     /*
      * Test Case id: 22
-     * Test Case name: dirtraversal
-     * Description: Create an AJP13 ForwardRequest (GET) with multiple directory traversal payloads
+     * Test Case name: genericfuzz
+     * Description: Create an AJP13 ForwardRequest (GET) by fuzzing arbitrary message elements - the fuzzing list should be passed as last argument
+     * Usage example: AJPFuzzer/192.168.80.131:8009> genericfuzz 2 "HTTP/1.1" "/test.html" "127.0.0.1" "127.0.0.1" "server.name.test" 8009 false "Cookie:AAAA=BBBB" "secret:FUZZ" /path/list.txt
      */
-    @Command(description = "Create an AJP13 ForwardRequest (GET) with multiple directory traversal payloads", name = "dirtraversal", abbrev = "22")
-    public void dirTraversalMessage(@Param(name = "url", description = "Forward Request URL (Path is discarded)") String url) throws UnsupportedEncodingException, IOException {
-        InputStream in = getClass().getResourceAsStream("/dirtrav.list");
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                // Single payload
-                if (Utils.isWindows()) { //assuming target app is running on the same host 
-                    line = line.trim().replaceAll("FILE", "Boot.ini");
-                } else {
-                    //Unix-like
-                    line = line.trim().replaceAll("FILE", "etc/passwd");
+    @Command(description = "Create an AJP13 ForwardRequest (GET) with multiple directory traversal payloads", name = "genericfuzz", abbrev = "22")
+    public void dirTraversalMessage(
+            @Param(name = "method", description = "HTTP verb (e.g. GET=2)") int method,
+            @Param(name = "protocol", description = "HTTP protocol (e.g. HTTP/1.1)") String protocol,
+            @Param(name = "requestUri", description = "Request URI (e.g. /api/)") String requestUri,
+            @Param(name = "remoteAddr", description = "Client IP address") String remoteAddr,
+            @Param(name = "remoteHost", description = "Client FQDN") String remoteHost,
+            @Param(name = "serverName", description = "Server FQDN") String serverName,
+            @Param(name = "serverPort", description = "Server TCP port") int serverPort,
+            @Param(name = "isSsl", description = "Is SSL? Boolean") boolean isSsl,
+            @Param(name = "headers", description = "HTTP headers as <name>:<value>,<name>:<value>,...") String headers,
+            @Param(name = "attributes", description = "HTTP attributes as <name>:<value>,<name>:<value>,...") String attributes,
+            @Param(name = "path", description = "List file") String pathFile
+    ) throws UnsupportedEncodingException, IOException {
+
+        List<String> allLines = Files.readAllLines(Paths.get(pathFile));
+        for (String singleLine : allLines) {
+
+            System.out.println("current: " + singleLine);
+
+            String protocol_replaced = Utils.replaceFuzz(protocol, singleLine);
+            String requestUri_replaced = Utils.replaceFuzz(requestUri, singleLine);
+            String remoteAddr_replaced = Utils.replaceFuzz(remoteAddr, singleLine);
+            String remoteHost_replaced = Utils.replaceFuzz(remoteHost, singleLine);
+            String serverName_replaced = Utils.replaceFuzz(serverName, singleLine);
+
+            List<Pair<String, String>> headersList = null;
+
+            if (headers.contains(":")) {
+                //Convert headers string to java.util.List<Pair<java.lang.String,java.lang.String>>
+                String[] header = headers.split(",");
+                headersList = new LinkedList<>();
+                for (int i = 0; i < header.length; i++) {
+                    String[] nameValue = header[i].split(":");
+                    //nameValue[0].equalsIgnoreCase("FUZZ") ?
+                    headersList.add(Pair.make(Utils.replaceFuzz(nameValue[0], singleLine), Utils.replaceFuzz(nameValue[1], singleLine)));
                 }
-                List<Pair<String, String>> attributes = new LinkedList<>();
-                attributes.add(Pair.make("servlet_path", line));
-                URL ulrv = new URL(url);
-                AjpMessage msg = new ForwardRequestMessage(2, "HTTP/1.1", line, "127.0.0.1", "localhost", ulrv.getHost(), ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()), ulrv.getProtocol().equalsIgnoreCase("https"), null, attributes);
-                Utils.sendAndReceiveVerbose(ajpsocket, msg.getBytes(), "(22) dirtraversal - relative path");
-                msg = new ForwardRequestMessage(2, "HTTP/1.1", "/" + line, "127.0.0.1", "localhost", ulrv.getHost(), ((ulrv.getPort() == -1) ? ulrv.getDefaultPort() : ulrv.getPort()), ulrv.getProtocol().equalsIgnoreCase("https"), null, attributes);
-                Utils.sendAndReceiveVerbose(ajpsocket, msg.getBytes(), "(22) dirtraversal - absolute path");
             }
+
+            List<Pair<String, String>> attributesList = null;
+            if (attributes.contains(":")) {
+                //Convert attributes string to java.util.List<Pair<java.lang.String,java.lang.String>>
+                String[] attribute = attributes.split(",");
+                attributesList = new LinkedList<>();
+                for (int i = 0; i < attribute.length; i++) {
+                    String[] nameValue = attribute[i].split(":");
+                    attributesList.add(Pair.make(Utils.replaceFuzz(nameValue[0], singleLine), Utils.replaceFuzz(nameValue[1], singleLine)));
+                }
+            }
+
+            AjpMessage msg = new ForwardRequestMessage(
+                    method,
+                    protocol_replaced,
+                    requestUri_replaced,
+                    remoteAddr_replaced,
+                    remoteHost_replaced,
+                    serverName_replaced,
+                    serverPort,
+                    isSsl,
+                    headersList,
+                    attributesList);
+            Utils.sendAndReceiveVerbose(ajpsocket, msg.getBytes(), "(22) genericfuzz");
         }
+
     }
 }

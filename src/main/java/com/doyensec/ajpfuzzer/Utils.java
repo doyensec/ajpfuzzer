@@ -85,14 +85,14 @@ public class Utils {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-        
+
         return buffReply;
     }
 
     protected static void sendAndReceiveVerbose(AJPFuzzer ajpsocket, byte[] data, String testCase) throws UnsupportedEncodingException, IOException {
         sendAndReceive(ajpsocket, data, testCase, true);
     }
-    
+
     private static void dumpRequest(byte[] data, String testCase) throws IOException {
         System.out.println("\n[*] Sending Test Case '" + testCase + "'");
         System.out.println("[*] " + new Timestamp(new Date().getTime()));
@@ -153,5 +153,11 @@ public class Utils {
             bytesArray[i] = (byte) myList.get(i);
         }
         return bytesArray;
+    }
+
+    protected static String replaceFuzz(String stringToReplace, String currentSingle){
+        final String fuzzKey = "FUZZ";
+        String result  = "";
+        return stringToReplace.replace(fuzzKey, currentSingle);
     }
 }
