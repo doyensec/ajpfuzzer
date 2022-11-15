@@ -8,7 +8,7 @@ Built on top of [libajp13](https://github.com/doyensec/libajp13), the tool allow
 1. Download the latest AJPFuzzer jar from the [releases page](https://github.com/doyensec/ajpfuzzer/releases)
 2. Execute the downloaded jar using:
 
-        $ java -jar ajpfuzzer_v0.6.jar
+        $ java -jar ajpfuzzer_v0.7.jar
 
 3. The tool will prompt a shell. By typing *?list*, it is possible to list all available commands. At this point, you can connect to the target using:
 
