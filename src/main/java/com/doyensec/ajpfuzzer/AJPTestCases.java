@@ -526,10 +526,10 @@ public class AJPTestCases {
     /*
      * Test Case id: 22
      * Test Case name: genericfuzz
-     * Description: Create an AJP13 ForwardRequest (GET) by fuzzing arbitrary message elements - the fuzzing list should be passed as last argument
+     * Description: Create an AJP13 ForwardRequest (GET) that allows fuzzing arbitrary message elements - the fuzzing list should be passed as the last argument
      * Usage example: AJPFuzzer/192.168.80.131:8009> genericfuzz 2 "HTTP/1.1" "/test.html" "127.0.0.1" "127.0.0.1" "server.name.test" 8009 false "Cookie:AAAA=BBBB" "secret:FUZZ" /path/list.txt
      */
-    @Command(description = "Create an AJP13 ForwardRequest (GET) with multiple directory traversal payloads", name = "genericfuzz", abbrev = "22")
+    @Command(description = "Create an AJP13 ForwardRequest (GET) that allows fuzzing arbitrary message elements - the fuzzing list should be passed as the last argument", name = "genericfuzz", abbrev = "22")
     public void dirTraversalMessage(
             @Param(name = "method", description = "HTTP verb (e.g. GET=2)") int method,
             @Param(name = "protocol", description = "HTTP protocol (e.g. HTTP/1.1)") String protocol,
@@ -541,7 +541,7 @@ public class AJPTestCases {
             @Param(name = "isSsl", description = "Is SSL? Boolean") boolean isSsl,
             @Param(name = "headers", description = "HTTP headers as <name>:<value>,<name>:<value>,...") String headers,
             @Param(name = "attributes", description = "HTTP attributes as <name>:<value>,<name>:<value>,...") String attributes,
-            @Param(name = "path", description = "List file") String pathFile
+            @Param(name = "path", description = "Fuzzing file") String pathFile
     ) throws UnsupportedEncodingException, IOException {
 
         List<String> allLines = Files.readAllLines(Paths.get(pathFile));
