@@ -30,7 +30,7 @@ For example, we can send a fully customized *ForwardRequest* type message using:
 > forwardrequest 2 "HTTP/1.1" "/api/" 127.0.0.1 localhost porto 8009 false "Cookie:AAAA=BBBB" ""
 ```
 
-It's also possible to send *ForwardRequest* message fuzzing arbitrary elements:
+It's also possible to send a *ForwardRequest* message fuzzing arbitrary elements:
 
 ```
 > genericfuzz 2 "HTTP/1.1" "/test.html" "127.0.0.1" "127.0.0.1" "server.name.test" 8009 false "Cookie:AAAA=BBBB" "secret:FUZZ" /tmp/list.txt
@@ -65,6 +65,6 @@ Id | Name                | Description
 19 | bypassauthnull      | Create two AJP13 ForwardRequest with auth_type set to 'null'
 20 | envars              | Create an AJP13 ForwardRequest with req_attribute_code (10) in order to set arbitrary environmental variables
 21 | hugepacketsize      | Create two AJP13 requests with size > 8192 bytes
-22 | genericfuzz             | Create an AJP13 ForwardRequest (GET) by fuzzing arbitrary message elements using the `FUZZ` keyword
+22 | genericfuzz             | Create an AJP13 ForwardRequest (GET) that allows fuzzing arbitrary message elements using the `FUZZ` keyword
 
 New test cases can be added by extending the [AJPTestCases.java](https://github.com/doyensec/ajpfuzzer/blob/master/src/com/doyensec/ajpfuzzer/AJPTestCases.java) class. Using the *@Command* annotation, the tool will recognize the additional command and make it available from the CLI.  
